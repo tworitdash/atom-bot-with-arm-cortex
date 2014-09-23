@@ -1,0 +1,116 @@
+
+/* Browser Client */
+<html>
+  <head>
+    <style>
+      body {
+        font-family: "Helvetica Neue", helvetica, arial;
+        padding: 15px;
+	background-color: #63aeee;
+        text-align: center;
+      }
+
+      .horizontal {
+        width: 40%;
+        height: 50px;
+        margin-left: 30%;
+        margin-right: 30%;
+        background-color: #e3e3e3;
+      }
+
+      #left {
+        height: 200px;
+        width: 10%;
+        margin-left: 10%;
+        margin-right: 25%;
+        background-color: #e3e3e3;
+      }
+
+      #right{
+        height: 200px;
+        width: 10%;
+        margin-left: 25%;
+        margin-right: 10%;
+        background-color: #e3e3e3;
+      }
+	#stop {
+		
+	}
+
+    </style>
+  </head>
+  <body>
+    <h1>Robot Controlls</h1>
+    <button id="forward" class="horizontal">FORWARD</button>
+    <button id="left" class="vertical">LEFT</button>
+    <button id="right" class="vertical">RIGHT</button>
+    <button id="back" class="horizontal">BACK</button>
+	<button id="stop" class="horizontal">STOP</button>
+
+    <script>
+      var host = 'ws://192.168.43.210:3001/'
+      var ws = new WebSocket(host);
+
+      ws.onmessage = function (event) {
+        console.log(event.data);
+      };
+
+      init(ws);
+
+      function init(ws) {
+        if (window.DeviceOrientationEvent) {
+          // Listen for the deviceorientation event and handle the raw data
+          window.addEventListener('deviceorientation', function(eventData) {
+            // gamma is the left-to-right tilt in degrees, where right is positive
+            var tiltLR = eventData.gamma;
+
+            // beta is the front-to-back tilt in degrees, where front is positive
+            var tiltFB = eventData.beta;
+
+            // alpha is the compass direction the device is facing in degrees
+            var dir = eventData.alpha
+
+            if ((tiltFB < -30) && (tiltLR < -30)){
+              ws.send('f');
+            }
+            if ((tiltFB > 30) && (tiltLR > 30)){
+              ws.send('b');
+            }
+            if ((tiltFB < -30) && (tiltLR > 30)){
+              ws.send('r');
+            }
+            if ((tiltFB > 30) && (tiltLR < -30)){
+              ws.send('l');
+            }
+          }, false);
+        } else {
+          alert("Not supported on your device or browser.  Sorry.");
+        }
+      }
+
+      var forward = document.getElementById("forward");
+      forward.onclick = function() {
+        ws.send('f');
+      };
+
+      var left = document.getElementById("left");
+      left.onclick = function() {
+        ws.send('l');
+      };
+
+      var right = document.getElementById("right");
+      right.onclick = function() {
+        ws.send('r');
+      };
+
+      var back = document.getElementById("back");
+      back.onclick = function() {
+        ws.send('b');
+      };
+	var back = document.getElementById("stop");
+      back.onclick = function() {
+        ws.send('s');
+      };
+    </script>
+  </body>
+</html>
